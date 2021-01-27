@@ -7,6 +7,18 @@ metadata:
   labels:
     name: issues2stories
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-tokens
+  namespace: issues2stories
+  labels:
+    app: issues2stories
+type: Opaque
+stringData:
+  tracker: #@ data.values.tracker_token
+  github: #@ data.values.github_token
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,6 +45,16 @@ spec:
               value: #@ data.values.github_org
             - name: GITHUB_REPO
               value: #@ data.values.github_repo
+            - name: TRACKER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: api-tokens
+                  key: tracker
+            - name: GITHUB_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: api-tokens
+                  key: github
 ---
 apiVersion: v1
 kind: Service

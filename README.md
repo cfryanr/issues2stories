@@ -22,7 +22,8 @@ This field contains a convenient hyperlink to open the linked GitHub issue
 in your browser.
 
 The user story can then be edited as usual.
-Changes to the user story are not reflected in the corresponding GitHub issue.
+Additional changes to the GitHub issue are not reflected in the Tracker user story.
+Certain changes to the user story will be reflected back to the corresponding GitHub issue.
 
 If the user story is deleted, and the integration panel is refreshed,
 then the issue will reappear in the integration panel.
@@ -106,7 +107,8 @@ scope of this document.
    curl https://issues2stories.your-zone.com/tracker_import
    ```
 
-1. Add the integration to the Tracker project. Integrations -> Add an Integration -> Other.
+1. Add the integration to the Tracker project.
+   In the project, navigate to "Integrations -> Add an Integration -> Other".
    Use the following settings:
 
    - Project: Choose the project
@@ -116,6 +118,12 @@ scope of this document.
    - Base URL: `https://github.com/your-org/your-repo/issues/`
    - Import API URL: `https://issues2stories.your-zone.com/tracker_import`
    - Enabled: Checked
+
+1. Add the webhook to the Tracker project.
+   In the project, navigate to "More -> Webhooks".
+   Use the following settings to add a webhook:
+
+   - URL: https://issues2stories.your-zone.com/tracker_activity
 
 1. In your Tracker project, click on "issues2stories" (with the jigsaw puzzle icon)
    button in the left-hand side navigation. The panel will appear and should show

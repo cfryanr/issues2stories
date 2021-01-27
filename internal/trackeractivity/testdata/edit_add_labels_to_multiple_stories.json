@@ -1,0 +1,253 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5728",
+  "project_version": 5728,
+  "message": "Ryan Richard added labels \"design\", \"good-first-issue\" to 2 stories",
+  "highlight": "added labels",
+  "changes": [
+    {
+      "kind": "label",
+      "change_type": "update",
+      "id": 22448286,
+      "original_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 1,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 1,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "new_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 3,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 3,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "name": "design"
+    },
+    {
+      "kind": "label",
+      "change_type": "update",
+      "id": 22689375,
+      "original_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "new_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 2,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 2,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "name": "good-first-issue"
+    },
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176669667,
+      "original_values": {
+        "label_ids": [
+        ],
+        "updated_at": 1611699950000,
+        "labels": [
+        ]
+      },
+      "new_values": {
+        "label_ids": [
+          22448286,
+          22689375
+        ],
+        "updated_at": 1611700025000,
+        "labels": [
+          "design",
+          "good-first-issue"
+        ]
+      },
+      "name": "Enable audit logging for all of our test environments",
+      "story_type": "feature"
+    },
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176669670,
+      "original_values": {
+        "label_ids": [
+        ],
+        "updated_at": 1611699956000,
+        "labels": [
+        ]
+      },
+      "new_values": {
+        "label_ids": [
+          22448286,
+          22689375
+        ],
+        "updated_at": 1611700025000,
+        "labels": [
+          "design",
+          "good-first-issue"
+        ]
+      },
+      "name": "CI: do not gate integration tests running on other tests",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176669667,
+      "name": "Enable audit logging for all of our test environments",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176669667"
+    },
+    {
+      "kind": "story",
+      "id": 176669670,
+      "name": "CI: do not gate integration tests running on other tests",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176669670"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611700025000
+}

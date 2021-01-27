@@ -14,3 +14,18 @@ domain_name:
 
 #! e.g. "issues2stories-external-load-balancer-ingress-ip"
 ingress_global_static_ip_name:
+
+#! Tracker API token. The user account who owns this token must
+#! have at least read-only access to your Tracker project.
+#! The webhook will use this token whenever it hears about
+#! a changed Tracker user story to call the Tracker API to get
+#! more details about the story.
+#! e.g. "1c11aef11aef1f11111111111111111111111111"
+tracker_token:
+
+#! GitHub personal access token. The user account who owns this token must
+#! have write access to your GitHub project, and the token must be created
+#! with at least "full repo" access permission. This token will be used to
+#! make API calls to read and edit GitHub issues in your GitHub project.
+#! e.g. "1c11aef11aef1f11111111111111111111111111"
+github_token:
