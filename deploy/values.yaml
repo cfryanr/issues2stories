@@ -1,0 +1,16 @@
+#@data/values
+---
+
+#! e.g. "gcr.io/your-gcp-project/issues2stories:latest"
+container_image:
+
+#! e.g. "your-org" from https://github.com/your-org/your-repo
+github_org:
+#! e.g. "your-repo" from https://github.com/your-org/your-repo
+github_repo:
+
+#! e.g. "issues2stories.your-zone.com"
+domain_name:
+
+#! e.g. "issues2stories-external-load-balancer-ingress-ip"
+ingress_global_static_ip_name:

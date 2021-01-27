@@ -1,0 +1,77 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: issues2stories
+  labels:
+    name: issues2stories
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: issues2stories
+  namespace: issues2stories
+  labels:
+    app: issues2stories
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: issues2stories
+  template:
+    metadata:
+      labels:
+        app: issues2stories
+    spec:
+      containers:
+        - name: issues2stories
+          image: #@ data.values.container_image
+          imagePullPolicy: Always
+          env:
+            - name: GITHUB_ORG
+              value: #@ data.values.github_org
+            - name: GITHUB_REPO
+              value: #@ data.values.github_repo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: issues2stories
+  namespace: issues2stories
+  labels:
+    app: issues2stories
+spec:
+  type: NodePort
+  selector:
+    app: issues2stories
+  ports:
+    - protocol: TCP
+      port: 60000
+      targetPort: 8080
+---
+#! Create a Google-managed TLS cert for the app, which will be associated with the ingress below
+apiVersion: networking.gke.io/v1beta2 #! note that this may need to use v1 on newer GKE clusters
+kind: ManagedCertificate
+metadata:
+  name: issues2stories
+  namespace: issues2stories
+spec:
+  domains:
+    - #@ data.values.domain_name
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: issues2stories
+  namespace: issues2stories
+  annotations:
+    kubernetes.io/ingress.class: gce #! External load balancer
+    kubernetes.io/ingress.allow-http: "false" #! Turn off http. Must be the string "false" (not the boolean).
+    networking.gke.io/managed-certificates: issues2stories #! Name of ManagedCertificate above.
+    #! Static IP must defined in advance here: https://console.cloud.google.com/networking/addresses/list
+    kubernetes.io/ingress.global-static-ip-name: #@ data.values.ingress_global_static_ip_name
+spec:
+  backend:
+    serviceName: issues2stories
+    servicePort: 60000
