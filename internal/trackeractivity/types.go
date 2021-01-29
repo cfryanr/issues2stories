@@ -17,9 +17,10 @@ type Change struct {
 }
 
 type NewValues struct {
-	StoryType    string        `json:"story_type"`
-	CurrentState string        `json:"current_state"`
-	Estimate     OptionalInt64 `json:"estimate"`
+	StoryType    string            `json:"story_type"`
+	CurrentState string            `json:"current_state"`
+	Estimate     OptionalInt64     `json:"estimate"`
+	OwnerIDs     OptionalInt64List `json:"owner_ids"`
 }
 
 type Project struct {
@@ -31,7 +32,17 @@ type OptionalInt64 struct {
 	Value   *int64
 }
 
+type OptionalInt64List struct {
+	Present bool
+	Value   *[]int64
+}
+
 func (o *OptionalInt64) UnmarshalJSON(data []byte) error {
+	o.Present = true
+	return json.Unmarshal(data, &o.Value)
+}
+
+func (o *OptionalInt64List) UnmarshalJSON(data []byte) error {
 	o.Present = true
 	return json.Unmarshal(data, &o.Value)
 }

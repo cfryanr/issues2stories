@@ -19,6 +19,16 @@ stringData:
   tracker: #@ data.values.tracker_token
   github: #@ data.values.github_token
 ---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: issues2stories-configmap
+  namespace: issues2stories
+data:
+  #@yaml/text-templated-strings
+  config.yaml: |
+    tracker_id_to_github_username_mapping: (@= data.values.tracker_id_to_github_username_mapping or "null" @)
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,6 +50,9 @@ spec:
         - name: issues2stories
           image: #@ data.values.container_image
           imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
           env:
             - name: GITHUB_ORG
               value: #@ data.values.github_org
@@ -55,6 +68,10 @@ spec:
                 secretKeyRef:
                   name: api-tokens
                   key: github
+      volumes:
+        - name: config-volume
+          configMap:
+            name: issues2stories-configmap
 ---
 apiVersion: v1
 kind: Service

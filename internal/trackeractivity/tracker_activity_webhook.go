@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v33/github"
+	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
 	"issues2stories/internal/trackerapi"
 )
@@ -16,15 +17,18 @@ type handler struct {
 	trackerAPI   trackerapi.TrackerAPI
 	gitHubClient githubapi.GitHubAPI
 
+	configuration *config.Config
+
 	labelsToRemoveOnStateChange    []string
 	labelsToRemoveOnTypeChange     []string
 	labelsToRemoveOnEstimateChange []string
 }
 
-func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI) http.Handler {
+func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI, configuration *config.Config) http.Handler {
 	return &handler{
-		trackerAPI:   trackerAPI,
-		gitHubClient: gitHubClient,
+		trackerAPI:    trackerAPI,
+		gitHubClient:  gitHubClient,
+		configuration: configuration,
 
 		labelsToRemoveOnStateChange:    uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryState),
 		labelsToRemoveOnTypeChange:     uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryType),
@@ -105,6 +109,7 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 			continue
 		}
 
+		// Get the GitHub issue's initial list of labels.
 		issueLabels := issueDetails.Labels
 		log.Printf("issue #%d had labels before update: %v", githubIssueID, issueLabels)
 
@@ -136,8 +141,52 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 			}
 		}
 
-		// Push the updates back to GitHub.
-		err = h.gitHubClient.UpdateIssue(request.Context(), githubIssueID, &github.IssueRequest{Labels: &issueLabels})
+		// All label processing is finished, so set the results on the request object.
+		issueRequest := github.IssueRequest{Labels: &issueLabels}
+		log.Printf("New labels for issue #%d: %v", githubIssueID, issueLabels)
+		if equalIgnoringOrder(issueDetails.Labels, issueLabels) {
+			log.Printf("No label updates needed for issue #%d", githubIssueID)
+			issueRequest.Labels = nil
+		}
+
+		// If the story's owners have changed, then consider overwriting the assignees of the linked issue.
+		// Skip this when a story is initially created, because it will always set the owners to empty list
+		// in the change object, so there's no point in overwriting the current issue assignees just because
+		// the issue was dragged and dropped into the backlog/icebox.
+		if change.NewValues.OwnerIDs.Present && h.configuration.UserIDMapping != nil && change.ChangeType != "create" {
+			newStoryOwners := *change.NewValues.OwnerIDs.Value
+			if len(newStoryOwners) == 0 {
+				// All of the previous owners were explicitly removed. Clear the issue assignees list on the issue.
+				log.Printf("Previous story owners we explicitly removed. Clearing all assignees on issue #%d", githubIssueID)
+				issueRequest.Assignees = &[]string{}
+			} else {
+				// There are new owners explicitly assigned. Try to find their GitHub usernames.
+				newIssueAssignees := []string{}
+				for _, ownerID := range newStoryOwners {
+					gitHubUsernameOfOwner := h.configuration.UserIDMapping[ownerID]
+					if gitHubUsernameOfOwner != "" {
+						newIssueAssignees = append(newIssueAssignees, gitHubUsernameOfOwner)
+					}
+				}
+				// If none of the new owners had GitHub usernames configured, then skip the update.
+				if len(newIssueAssignees) > 0 {
+					log.Printf("Updating issue assignees on issue #%d to: %v", githubIssueID, newIssueAssignees)
+					issueRequest.Assignees = &newIssueAssignees
+				} else {
+					log.Printf(
+						"Skipping updating issue #%d assignees: none of these new story owners had GitHub usernames configured: %v",
+						githubIssueID, newStoryOwners)
+				}
+			}
+		}
+
+		// Push the updates back to GitHub, if there are any changes to be made.
+		if issueRequest.Assignees == nil && issueRequest.Labels == nil {
+			log.Printf("No updates planned. Skipping GitHub API call for issue #%d", githubIssueID)
+			continue
+		}
+		log.Printf("Calling GitHub API to update issue #%d", githubIssueID)
+		err = h.gitHubClient.UpdateIssue(request.Context(), githubIssueID, &issueRequest)
 		if err != nil {
 			log.Printf("Error calling GitHub API: %v", err)
 			http.Error(responseWriter, "can't update GitHub issue via GitHub API", http.StatusBadGateway)

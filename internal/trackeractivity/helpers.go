@@ -30,3 +30,23 @@ func removeElements(removeFrom []string, removeThese []string) []string {
 	}
 	return result
 }
+
+func equalIgnoringOrder(a1, a2 []string) bool {
+	// Okay to have a slow implementation because our lists are always short.
+	if len(a1) != len(a2) {
+		return false
+	}
+	for _, valueFromA1 := range a1 {
+		foundInA2 := false
+		for _, valueFromA2 := range a2 {
+			if valueFromA1 == valueFromA2 {
+				foundInA2 = true
+				break
+			}
+		}
+		if !foundInA2 {
+			return false
+		}
+	}
+	return true
+}

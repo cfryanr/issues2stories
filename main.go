@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
+	"gopkg.in/yaml.v3"
+	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
 	"issues2stories/internal/trackeractivity"
 	"issues2stories/internal/trackerapi"
@@ -34,6 +37,18 @@ func defaultHandler(responseWriter http.ResponseWriter, request *http.Request) {
 func main() {
 	fmt.Print("Starting server at port 8080\n")
 
+	const configFilePath = "/etc/config/config.yaml"
+	configYAML, err := ioutil.ReadFile(configFilePath)
+	if err != nil {
+		log.Fatalf("could not read config file: %s", configFilePath)
+	}
+	configuration := config.Config{}
+	err = yaml.Unmarshal(configYAML, &configuration)
+	if err != nil {
+		log.Fatalf("could not parse config file (%s) as YAML: %v", configFilePath, err)
+	}
+	log.Printf("Read user ID mapping config: %v", configuration.UserIDMapping)
+
 	gitHubOrg, ok := os.LookupEnv("GITHUB_ORG")
 	if !ok || gitHubOrg == "" {
 		log.Fatal("GITHUB_ORG environment variable not found or empty")
@@ -51,7 +66,7 @@ func main() {
 	gitHubClient := githubapi.New()
 
 	mux := http.NewServeMux()
-	mux.Handle("/tracker_activity", trackeractivity.NewHandler(trackerClient, gitHubClient))
+	mux.Handle("/tracker_activity", trackeractivity.NewHandler(trackerClient, gitHubClient, &configuration))
 	mux.Handle("/tracker_import", http.HandlerFunc(trackerimport.HandleTrackerImport))
 	mux.Handle("/", http.HandlerFunc(defaultHandler))
 

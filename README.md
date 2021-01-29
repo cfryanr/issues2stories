@@ -51,6 +51,8 @@ The following changes to the user story will be reflected back to the correspond
 | Estimated 5 points (only Fibonacci scale)             | Labeled `estimate/XL`              |
 | Estimated 8 points (only Fibonacci and Powers of 2 scales) | Labeled `estimate/XXL`        |
 | Un-estimated                                          | Updated the remove the above `estimate/*` labels |
+| Assigned to an owner(s)                               | Updated to change the Assignees    |
+| Unassigned                                            | Updated to clear the Assignees     |
 
 If the user story is deleted, and the integration panel is refreshed,
 then the issue will reappear in the integration panel. The Tracker story changes which
@@ -69,6 +71,8 @@ At this time, the app has the following limitations, which might be addressed by
       GitHub issues. Normally, even on a public repository, GitHub would prevent users who did not create the issue
       or who do not have write access to the repository from making these edits. Think twice about using this app
       if that is a concern for you.
+- The app does not re-read configuration dynamically. When you change configuration you can
+  restart the application's pod(s) using `rollout restart deployment/issues2stories`.
 - Each running instance of issues2stories can only be configured to link a
   single GitHub repository to a single Tracker project. If you would like to
   use issues2stories for multiple Tracker projects, you would currently
@@ -94,6 +98,47 @@ issues2stories is easily built as a container image.
 It is an HTTP server which listens on a single port to provide several REST-style endpoints.
 It can be run on any platform which can run the container image and provide HTTPS
 ingress with working TLS certificates that are trusted by Pivotal Tracker.
+
+### Optional: Configuring GitHub Usernames for Tracker Project Members
+
+If you would like the Assignees of a GitHub issue to be automatically updated when the owners of the linked
+Tracker story are updated, then you'll need to provide a little extra configuration so issues2stories
+knows how to map your team's Tracker users to your GitHub users.
+
+It's hard to find Tracker user IDs in the Tracker UI, so we'll use the
+[Tracker "GET members" API](https://www.pivotaltracker.com/help/api/rest/v5#projects_project_id_memberships_get)
+to find the user IDs of your project members.
+
+1. Find the ID of your Tracker project. This is shown in the URL bar of your browser
+   while you are viewing your Tracker project. e.g. `https://www.pivotaltracker.com/n/projects/2453999`
+   is the project with ID `2453999`.
+1. Copy your Tracker API token from your [Tracker profile page](https://www.pivotaltracker.com/profile).
+   You may need to click the "Create New Token" button on that page if you have no token listed.
+1. ```bash
+   export TRACKER_TOKEN='abc123' # replace this example value with your actual API token
+   export PROJECT_ID='2453999' # replace this number with your actual project ID
+   curl -s -H "X-TrackerToken: $TRACKER_TOKEN" "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/memberships" | jq -r '[.[] | .person]'
+   ```
+   Note that if you have lots of members in your project, you may need to add the `limit` query
+   parameter to get more responses in the list.
+   See the [Tracker API pagination documentation](https://www.pivotaltracker.com/help/api#Paginating_List_Responses).
+1. You'll get a list of values, where each value looks like this:
+   ```json
+    {
+        "kind": "person",
+        "id": 3344177,
+        "name": "Ryan Richard",
+        "email": "ryan@example.com",
+        "initials": "RR",
+        "username": "rr"
+    }
+    ```
+1. Note the `id` value for each member. It is not necessary to provide configuration for every member. Members who
+   are not configured will not be set as assignees on GitHub issues when they become owners of Tracker stories.
+1. Craft a YAML map of Tracker user IDs to GitHub usernames for the people on your team.
+   e.g. `{3344177: cfryanr, 1234567: some-other-github-username}`
+1. Provide that map as the configuration value for ytt when deploying. See [deploy/values.yaml](deploy/values.yaml)
+   and also see deployment example below.
 
 ### Example: Installing on [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine)
 

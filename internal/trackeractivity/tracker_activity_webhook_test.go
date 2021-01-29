@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/go-github/v33/github"
 	"github.com/stretchr/testify/require"
+	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
 )
 
@@ -115,6 +116,8 @@ func (f *fakeTrackerAPI) GetGithubIssueIDLinkedToStory(trackerProjectID, tracker
 func TestHandleTrackerActivityWebhook(t *testing.T) {
 	tests := []struct {
 		name string
+
+		configuration *config.Config
 
 		method      string
 		path        string
@@ -536,6 +539,30 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			wantStatus: http.StatusOK,
 		},
 		{
+			name:        "skip calling the github API to update the issue when the labels actually didn't change",
+			bodyFixture: "edit_estimate_feature_story",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				// "estimate/XXL" is the same label that would be applied in this case, but it was already on the GitHub issue for some reason.
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176650922},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations: 0,
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
 			name:        "removing the estimate from a story",
 			bodyFixture: "edit_remove_feature_story_estimate",
 			trackerReturns: &fakeTrackerAPIReturnValues{
@@ -558,6 +585,223 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 				issueNumberArgs: []int{42},
 				updatesArgs: []*github.IssueRequest{
 					{Labels: &[]string{"initial-unrelated-label", "enhancement", "priority/backlog"}},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "changing the owners of a story when all owners are found in configuration",
+			bodyFixture: "edit_story_assign_second_owner",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344177: "github-user1",
+				3344175: "github-user2",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    nil, // nothing to update
+						Assignees: &[]string{"github-user1", "github-user2"},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:          "changing the owners of a story when no configuration is provided",
+			bodyFixture:   "edit_story_assign_second_owner",
+			configuration: &config.Config{UserIDMapping: nil},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations: 0, // no labels or owners need updates
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "changing the owners of a story when some of the new owners are not in the configuration map",
+			bodyFixture: "edit_story_assign_second_owner",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344175: "github-user2",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    nil, // nothing to update
+						Assignees: &[]string{"github-user2"},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:          "changing the owners of a story when none of the new owners are in the configuration map",
+			bodyFixture:   "edit_story_assign_second_owner",
+			configuration: &config.Config{UserIDMapping: map[int64]string{}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations: 0, // no labels or owners need updates
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "when the owners have not changed, do not update the issue's assignees",
+			bodyFixture: "edit_estimate_feature_story",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344177: "github-user1",
+				3344175: "github-user2",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XS", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176650922},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    &[]string{"initial-unrelated-label", "enhancement", "priority/backlog", "estimate/XXL"},
+						Assignees: nil,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "when all of the owners were explicitly removed, also remove the issue's assignees",
+			bodyFixture: "edit_story_remove_all_owners",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344177: "github-user1",
+				3344175: "github-user2",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    nil,         // nothing to update
+						Assignees: &[]string{}, // overwrite assignees with empty list, i.e. remove all assignees
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "do not clear issue assignees when a story is first created",
+			bodyFixture: "create_feature_story_in_icebox",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344177: "github-user1",
+				3344175: "github-user2",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176650922},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    &[]string{"initial-unrelated-label", "priority/undecided", "enhancement"},
+						Assignees: nil, // no update of assignees
+					},
 				},
 			},
 			wantStatus: http.StatusOK,
@@ -596,8 +840,11 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			if test.contentType == "" {
 				test.contentType = "application/json"
 			}
+			if test.configuration == nil {
+				test.configuration = &config.Config{}
+			}
 
-			subject := NewHandler(&trackerAPI, &gitHubAPI)
+			subject := NewHandler(&trackerAPI, &gitHubAPI, test.configuration)
 
 			var requestBodyReader io.Reader
 			switch {
