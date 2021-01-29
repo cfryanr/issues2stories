@@ -16,8 +16,9 @@ type handler struct {
 	trackerAPI   trackerapi.TrackerAPI
 	gitHubClient githubapi.GitHubAPI
 
-	labelsToRemoveOnStateChange []string
-	labelsToRemoveOnTypeChange  []string
+	labelsToRemoveOnStateChange    []string
+	labelsToRemoveOnTypeChange     []string
+	labelsToRemoveOnEstimateChange []string
 }
 
 func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI) http.Handler {
@@ -25,8 +26,9 @@ func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubA
 		trackerAPI:   trackerAPI,
 		gitHubClient: gitHubClient,
 
-		labelsToRemoveOnStateChange: uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryState),
-		labelsToRemoveOnTypeChange:  uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryType),
+		labelsToRemoveOnStateChange:    uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryState),
+		labelsToRemoveOnTypeChange:     uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryType),
+		labelsToRemoveOnEstimateChange: uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryEstimate),
 	}
 }
 
@@ -120,6 +122,18 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 			issueLabels = removeElements(issueLabels, h.labelsToRemoveOnTypeChange)
 			labelsForNewStoryType := issueLabelsToApplyPerStoryType[newStoryType]
 			issueLabels = append(issueLabels, labelsForNewStoryType...)
+		}
+
+		// If the story's estimate has changed, then update the labels of the linked issue.
+		if change.NewValues.Estimate.Present {
+			issueLabels = removeElements(issueLabels, h.labelsToRemoveOnEstimateChange)
+			// If the new value is nil, then the story was unestimated.
+			newEstimate := change.NewValues.Estimate.Value
+			if newEstimate != nil {
+				// The new value exists, so the story was estimated or re-estimated.
+				labelsForNewStoryType := issueLabelsToApplyPerStoryEstimate[fmt.Sprint(*newEstimate)]
+				issueLabels = append(issueLabels, labelsForNewStoryType...)
+			}
 		}
 
 		// Push the updates back to GitHub.

@@ -508,6 +508,60 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			wantContentType: "text/plain; charset=utf-8",
 			wantBody:        "can't update GitHub issue via GitHub API\n",
 		},
+		{
+			name:        "estimating a story",
+			bodyFixture: "edit_estimate_feature_story",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176650922},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{Labels: &[]string{"initial-unrelated-label", "enhancement", "priority/backlog", "estimate/XXL"}},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "removing the estimate from a story",
+			bodyFixture: "edit_remove_feature_story_estimate",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "estimate/XXL", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176711643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{Labels: &[]string{"initial-unrelated-label", "enhancement", "priority/backlog"}},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

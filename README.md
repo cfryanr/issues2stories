@@ -30,19 +30,27 @@ issues2stories also provides a
 to allow limited synchronizing of the edits made to Tracker stories back to the linked GitHub issue.
 The following changes to the user story will be reflected back to the corresponding GitHub issue:
 
-| When the story is... | Then the linked GitHub issue is... |
-| -------------------- | ---------------------------------- |
-| Moved to the icebox  | Labeled `priority/undecided`       |
-| Moved to the backlog | Labeled `priority/backlog`         |
-| Started              | Labeled `state/started`            |
-| Finished             | Labeled `state/finished`           |
-| Delivered            | Labeled `state/delivered`          |
-| Rejected             | Labeled `state/rejected`           |
-| Accepted             | Labeled `state/accepted`           |
-| Made a Feature       | Labeled `enhancement`              |
-| Made a Bug           | Labeled `bug`                      |
-| Made a Chore         | Labeled `chore`                    |
-| Made a Release       | Updated to remove `enhancement`, `bug`, `chore` labels |
+| When the story is...                                  | Then the linked GitHub issue is... |
+| --------------------                                  | ---------------------------------- |
+| Moved to the icebox                                   | Labeled `priority/undecided`       |
+| Moved to the backlog                                  | Labeled `priority/backlog`         |
+| Started                                               | Labeled `state/started`            |
+| Finished                                              | Labeled `state/finished`           |
+| Delivered                                             | Labeled `state/delivered`          |
+| Rejected                                              | Labeled `state/rejected`           |
+| Accepted                                              | Labeled `state/accepted`           |
+| Made a Feature                                        | Labeled `enhancement`              |
+| Made a Bug                                            | Labeled `bug`                      |
+| Made a Chore                                          | Labeled `chore`                    |
+| Made a Release                                        | Updated to remove `enhancement`, `bug`, `chore` labels |
+| Estimated 0 points (all scales)                       | Labeled `estimate/XS`              |
+| Estimated 1 point (all scales)                        | Labeled `estimate/S`               |
+| Estimated 2 points (all scales)                       | Labeled `estimate/M`               |
+| Estimated 3 points (only Fibonacci and Linear scales) | Labeled `estimate/L`               |
+| Estimated 4 points (only Powers of 2 scale)           | Labeled `estimate/L`               |
+| Estimated 5 points (only Fibonacci scale)             | Labeled `estimate/XL`              |
+| Estimated 8 points (only Fibonacci and Powers of 2 scales) | Labeled `estimate/XXL`        |
+| Un-estimated                                          | Updated the remove the above `estimate/*` labels |
 
 If the user story is deleted, and the integration panel is refreshed,
 then the issue will reappear in the integration panel. The Tracker story changes which
@@ -72,6 +80,10 @@ At this time, the app has the following limitations, which might be addressed by
 - The GitHub issue labels that the app manages must be created manually in GitHub before using the app.
   See [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) for a list of
   label names that are assumed to exist on your GitHub repository.
+- Aside from Fibonacci, linear, and powers of 2 estimate point scales, Tracker also supports "custom" scales.
+  Custom scales are not supported by issues2stories unless the compile-time values for the point scale keys in
+  [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) are adjusted to match your
+  custom scale.
 - The issues2stories Tracker story import integration will not work for the open GitHub issues beyond the first
   100 issues. This is because the issues2stories backend code is not using pagination yet when making the 
   GitHub API request to list open stories. This should be easy to fix.

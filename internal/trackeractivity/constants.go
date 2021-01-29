@@ -49,3 +49,34 @@ var issueLabelsToApplyPerStoryType = map[string][]string{
 	"chore":   {"chore"},
 	"release": {}, // empty means just remove the other labels
 }
+
+// The keys in this map represent story estimates.
+//
+// See https://www.pivotaltracker.com/help/api/rest/v5#story_resource
+//
+// See also https://www.pivotaltracker.com/help/articles/estimating_stories/
+//
+// The values in this map represent all of the labels that should be
+// automatically managed by this app per state. This code assumes that
+// these labels already exist in your GitHub repository.
+//
+// When a story's estimate is edited, this app
+// will update the linked issue to remove all of the labels mentioned
+// by any value in the map, and then add the labels at that specific
+// key's value.
+//
+// Tracker's estimation scales:
+// - Fibonacci scale:   0, 1, 2, 3, 5, 8 -> XS, S, M, L, XL, XXL
+// - Powers of 2 scale: 0, 1, 2, 4, 8    -> XS, S, M, L, XXL
+// - Linear scale:      0, 1, 2, 3       -> XS, S, M, L
+// - Custom scale: Not supported unless you edit the code below to match
+//   allowed values of your custom scale.
+var issueLabelsToApplyPerStoryEstimate = map[string][]string{
+	"0": {"estimate/XS"},
+	"1": {"estimate/S"},
+	"2": {"estimate/M"},
+	"3": {"estimate/L"},   // 3 is used in fibonacci and linear
+	"4": {"estimate/L"},   // 4 is only used in powers of 2
+	"5": {"estimate/XL"},  // 5 is only used in fibonacci
+	"8": {"estimate/XXL"}, // 8 is only used in fibonacci and powers of 2
+}
