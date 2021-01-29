@@ -1,0 +1,140 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5710",
+  "project_version": 5710,
+  "message": "Ryan Richard edited this bug",
+  "highlight": "edited",
+  "changes": [
+    {
+      "kind": "label",
+      "change_type": "update",
+      "id": 22689375,
+      "original_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "new_values": {
+        "counts": {
+          "number_of_zero_point_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 1,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "sum_of_story_estimates_by_state": {
+            "accepted": 0,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 0,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "number_of_stories_by_state": {
+            "accepted": 1,
+            "started": 0,
+            "finished": 0,
+            "unstarted": 0,
+            "planned": 0,
+            "delivered": 0,
+            "unscheduled": 1,
+            "rejected": 0,
+            "kind": "counts_by_story_state"
+          },
+          "kind": "story_counts"
+        }
+      },
+      "name": "good-first-issue"
+    },
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176650922,
+      "original_values": {
+        "label_ids": [
+
+        ],
+        "updated_at": 1611623762000,
+        "labels": [
+
+        ]
+      },
+      "new_values": {
+        "label_ids": [
+          22689375
+        ],
+        "updated_at": 1611623836000,
+        "labels": [
+          "good-first-issue"
+        ]
+      },
+      "name": "Test story... please ignore",
+      "story_type": "bug"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176650922,
+      "name": "Test story... please ignore",
+      "story_type": "bug",
+      "url": "https://www.pivotaltracker.com/story/show/176650922"
+    }
+  ],
+  "secondary_resources": [
+
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611623836000
+}

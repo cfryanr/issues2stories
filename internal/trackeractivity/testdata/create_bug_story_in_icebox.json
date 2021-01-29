@@ -1,0 +1,64 @@
+{
+  "kind": "story_create_activity",
+  "guid": "2453999_5761",
+  "project_version": 5761,
+  "message": "Ryan Richard added this bug",
+  "highlight": "added",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "create",
+      "id": 176710594,
+      "new_values": {
+        "id": 176710594,
+        "project_id": 2453999,
+        "name": "Fake issue for testing, please ignore",
+        "description": "**What is the problem that you wish to solve?**\n\nFake issue\n\n**What is the best solution to the above problem?**\n\n> Please provide a clear and concise description of what the solution is.\n\n**What are the alternative solutions that you have considered?**\n\nPlease ignore\n\n**How will this project improvement be tested?**\n\nVery well.\n\n**In what environment do you hope to see this improvement?**\n\nAll of them.\n\n**What else is there to know about this improvement?**\n\nYou folks rock!",
+        "story_type": "bug",
+        "current_state": "unscheduled",
+        "requested_by_id": 3344177,
+        "owner_ids": [
+        ],
+        "label_ids": [
+        ],
+        "follower_ids": [
+        ],
+        "created_at": 1611877158000,
+        "updated_at": 1611877159000,
+        "before_id": 176669670,
+        "after_id": 175402743,
+        "integration_id": 52033,
+        "external_id": "155",
+        "blocked_story_ids": [
+        ],
+        "labels": [
+        ]
+      },
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "bug"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176710594,
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "bug",
+      "url": "https://www.pivotaltracker.com/story/show/176710594"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611877159000
+}

@@ -1,0 +1,40 @@
+{
+  "kind": "story_delete_activity",
+  "guid": "2453999_5714",
+  "project_version": 5714,
+  "message": "Ryan Richard deleted this bug",
+  "highlight": "deleted",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "delete",
+      "id": 176650922,
+      "name": "Test story... please ignore",
+      "story_type": "bug"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176650922,
+      "name": "Test story... please ignore",
+      "story_type": "bug",
+      "url": "https://www.pivotaltracker.com/story/show/176650922"
+    }
+  ],
+  "secondary_resources": [
+
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611624097000
+}

@@ -1,0 +1,47 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5706",
+  "project_version": 5706,
+  "message": "Ryan Richard estimated this feature as 8 points",
+  "highlight": "estimated",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176650922,
+      "original_values": {
+        "estimate": null,
+        "updated_at": 1611623380000
+      },
+      "new_values": {
+        "estimate": 8,
+        "updated_at": 1611623534000
+      },
+      "name": "Test story... please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176650922,
+      "name": "Test story... please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176650922"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611623534000
+}

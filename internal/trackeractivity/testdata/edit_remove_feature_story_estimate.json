@@ -1,0 +1,47 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5789",
+  "project_version": 5789,
+  "message": "Ryan Richard unestimated this feature",
+  "highlight": "unestimated",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176711643,
+      "original_values": {
+        "estimate": 5,
+        "updated_at": 1611885084000
+      },
+      "new_values": {
+        "estimate": null,
+        "updated_at": 1611886092000
+      },
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176711643,
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176711643"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611886092000
+}
