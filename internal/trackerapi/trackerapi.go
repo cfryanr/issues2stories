@@ -8,7 +8,11 @@ import (
 	"strconv"
 )
 
-type TrackerResponse struct {
+type TrackerAPI interface {
+	GetGithubIssueIDLinkedToStory(trackerProjectID, trackerStoryID int64) (githubIssueID int, err error)
+}
+
+type trackerResponse struct {
 	ExternalID string `json:"external_id"`
 }
 
@@ -17,7 +21,7 @@ type Client struct {
 	trackerAPIToken string
 }
 
-func New(trackerAPIToken string, client *http.Client) *Client {
+func New(trackerAPIToken string, client *http.Client) TrackerAPI {
 	return &Client{trackerAPIToken: trackerAPIToken, client: client}
 }
 
@@ -39,7 +43,7 @@ func (c *Client) GetGithubIssueIDLinkedToStory(trackerProjectID, trackerStoryID 
 		return 0, fmt.Errorf("Tracker API at %s returned body which cannot be read: %v", url, err)
 	}
 
-	var parsedResponse TrackerResponse
+	var parsedResponse trackerResponse
 	err = json.Unmarshal(body, &parsedResponse)
 	if err != nil {
 		return 0, fmt.Errorf("Tracker API at %s returned body which cannot be parsed as json: %s", url, body)

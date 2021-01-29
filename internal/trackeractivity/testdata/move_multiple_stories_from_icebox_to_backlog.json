@@ -1,0 +1,69 @@
+{
+  "kind": "story_move_activity",
+  "guid": "2453999_5769",
+  "project_version": 5769,
+  "message": "Ryan Richard moved and scheduled 2 stories to the Backlog",
+  "highlight": "moved and scheduled",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176710975,
+      "original_values": {
+        "current_state": "unscheduled",
+        "updated_at": 1611880065000
+      },
+      "new_values": {
+        "current_state": "unstarted",
+        "updated_at": 1611880092000
+      },
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature"
+    },
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176710977,
+      "original_values": {
+        "current_state": "unscheduled",
+        "updated_at": 1611880067000
+      },
+      "new_values": {
+        "current_state": "unstarted",
+        "updated_at": 1611880092000
+      },
+      "name": "Enable audit logging for all of our test environments",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176710975,
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176710975"
+    },
+    {
+      "kind": "story",
+      "id": 176710977,
+      "name": "Enable audit logging for all of our test environments",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176710977"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611880092000
+}

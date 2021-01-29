@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-type errReader int
+type readerWhichAlwaysErrors int
 
-func (errReader) Read(_ []byte) (n int, err error) {
+func (readerWhichAlwaysErrors) Read(_ []byte) (n int, err error) {
 	return 0, errors.New("some error")
 }
 
@@ -158,7 +159,7 @@ func TestTrackerAPIClient(t *testing.T) {
 
 				body := ioutil.NopCloser(bytes.NewBufferString(test.trackerResponseBody))
 				if test.trackerResponseBodyReadFails {
-					body = ioutil.NopCloser(errReader(0))
+					body = ioutil.NopCloser(readerWhichAlwaysErrors(0))
 				}
 				return &http.Response{
 					StatusCode: test.trackerResponseStatus,

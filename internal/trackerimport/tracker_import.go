@@ -54,6 +54,8 @@ func HandleTrackerImport(responseWriter http.ResponseWriter, request *http.Reque
 		return
 	}
 
+	log.Printf("tracker_import starting")
+
 	httpClient := &http.Client{}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -62,12 +64,18 @@ func HandleTrackerImport(responseWriter http.ResponseWriter, request *http.Reque
 		ctx,
 		http.MethodGet,
 		fmt.Sprintf(
-			"https://api.github.com/repos/%s/%s/issues?state=open",
+			// TODO support pagination so we can get more than 100 open issues. See https://docs.github.com/en/rest/reference/issues#list-issues
+			"https://api.github.com/repos/%s/%s/issues?state=open&per_page=100",
 			os.Getenv("GITHUB_ORG"),
 			os.Getenv("GITHUB_REPO"),
 		),
 		nil,
 	)
+	if err != nil {
+		log.Printf("%v", err)
+		http.Error(responseWriter, "Failed to create request with context.", http.StatusInternalServerError)
+		return
+	}
 
 	gitHubResp, err := httpClient.Do(getIssuesRequest)
 	if err != nil {
@@ -102,6 +110,7 @@ func HandleTrackerImport(responseWriter http.ResponseWriter, request *http.Reque
 	issuesWithPRsRemoved := make([]Issue, 0)
 	for _, issue := range issues {
 		if issue.PullRequest == nil {
+			log.Printf("tracker_import saw issue: #%d: %s", issue.Number, issue.Title)
 			issue.RequestedBy = issue.User.Login // promote this field to top-level for xml output
 			if issue.HasLabel("bug") {
 				issue.StoryType = "bug"

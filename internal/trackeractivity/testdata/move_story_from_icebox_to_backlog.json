@@ -1,0 +1,47 @@
+{
+  "kind": "story_move_activity",
+  "guid": "2453999_5704",
+  "project_version": 5704,
+  "message": "Ryan Richard moved and scheduled this story after '[stub] Operator should be able to configure multiple upstream IDPs'",
+  "highlight": "moved and scheduled",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176650922,
+      "original_values": {
+        "current_state": "unscheduled",
+        "updated_at": 1611623067000
+      },
+      "new_values": {
+        "current_state": "unstarted",
+        "updated_at": 1611623340000
+      },
+      "name": "Test story... please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176650922,
+      "name": "Test story... please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176650922"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1611623340000
+}

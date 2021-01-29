@@ -2,10 +2,12 @@
 
 issues2stories is an app which provides a limited amount of synchronizing between
 [Pivotal Tracker](https://www.pivotaltracker.com/) user stories in a Tracker project
-and GitHub issues in a GihHub repository.
+and [GitHub](https://github.com/) issues in a GitHub repository.
+
+## Features
 
 issues2stories provides a
-Pivotal Tracker [integration](https://www.pivotaltracker.com/help/articles/other_integration)
+[Pivotal Tracker integration](https://www.pivotaltracker.com/help/articles/other_integration)
 which adds a new panel to your Tracker project. 
 The new panel shows a list of all open GitHub issues from the GitHub repository (not including pull requests).
 It can be refreshed using a button at the top of the panel.
@@ -22,11 +24,57 @@ This field contains a convenient hyperlink to open the linked GitHub issue
 in your browser.
 
 The user story can then be edited as usual.
-Additional changes to the GitHub issue are not reflected in the Tracker user story.
-Certain changes to the user story will be reflected back to the corresponding GitHub issue.
+Additional changes to the GitHub issue are *not* reflected in the Tracker user story.
+issues2stories also provides a
+[Pivotal Tracker webhook](https://www.pivotaltracker.com/help/articles/activity_webhook)
+to allow limited synchronizing of the edits made to Tracker stories back to the linked GitHub issue.
+The following changes to the user story will be reflected back to the corresponding GitHub issue:
+
+| When the story is... | Then the linked GitHub issue is... |
+| -------------------- | ---------------------------------- |
+| Moved to the icebox  | Labeled `priority/undecided`       |
+| Moved to the backlog | Labeled `priority/backlog`         |
+| Started              | Labeled `state/started`            |
+| Finished             | Labeled `state/finished`           |
+| Delivered            | Labeled `state/delivered`          |
+| Rejected             | Labeled `state/rejected`           |
+| Accepted             | Labeled `state/accepted`           |
+| Made a Feature       | Labeled `enhancement`              |
+| Made a Bug           | Labeled `bug`                      |
+| Made a Chore         | Labeled `chore`                    |
+| Made a Release       | Updated to remove `enhancement`, `bug`, `chore` labels |
 
 If the user story is deleted, and the integration panel is refreshed,
-then the issue will reappear in the integration panel.
+then the issue will reappear in the integration panel. The Tracker story changes which
+were previously automatically synchronized to the Github issue as described in the table above
+are left unchanged on the GitHub issue. The issue can then be dragged and dropped back into
+the backlog or icebox, and the synchronization described above will resume.
+
+## Known Limitations
+
+At this time, the app has the following limitations, which might be addressed by future enhancements:
+
+- There is no authentication on the provided REST endpoints.
+    - There is a read-only endpoint that could be exploited to read open issues from your GitHub repository. This
+      is not a problem for public repositories, but think twice before using this for a private repository.
+    - There is an endpoint which could be exploited to perform the edits described in the table above to your
+      GitHub issues. Normally, even on a public repository, GitHub would prevent users who did not create the issue
+      or who do not have write access to the repository from making these edits. Think twice about using this app
+      if that is a concern for you.
+- Each running instance of issues2stories can only be configured to link a
+  single GitHub repository to a single Tracker project. If you would like to
+  use issues2stories for multiple Tracker projects, you would currently
+  need to run multiple copies of it.
+- The GitHub issue labels that the app manages are not configurable. However, they could be changed
+  at compile time by editing the source.
+  See the comments in [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go)
+  for more information.
+- The GitHub issue labels that the app manages must be created manually in GitHub before using the app.
+  See [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) for a list of
+  label names that are assumed to exist on your GitHub repository.
+- The issues2stories Tracker story import integration will not work for the open GitHub issues beyond the first
+  100 issues. This is because the issues2stories backend code is not using pagination yet when making the 
+  GitHub API request to list open stories. This should be easy to fix.
 
 ## Installing
 

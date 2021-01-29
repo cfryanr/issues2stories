@@ -6,35 +6,28 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/google/go-github/v33/github"
+	"issues2stories/internal/githubapi"
+	"issues2stories/internal/trackerapi"
 )
 
-type TrackerAPI interface {
-	GetGithubIssueIDLinkedToStory(trackerProjectID, trackerStoryID int64) (githubIssueID int, err error)
-}
-
-type TrackerEvent struct {
-	Kind    string   `json:"kind"`
-	Changes []Change `json:"changes"`
-	Project Project  `json:"project"`
-}
-
-type Change struct {
-	Kind       string `json:"kind"`
-	ID         int64  `json:"id"`
-	ChangeType string `json:"change_type"`
-	StoryType  string `json:"story_type"`
-}
-
-type Project struct {
-	ID int64 `json:"id"`
-}
-
 type handler struct {
-	TrackerAPI TrackerAPI
+	trackerAPI   trackerapi.TrackerAPI
+	gitHubClient githubapi.GitHubAPI
+
+	labelsToRemoveOnStateChange []string
+	labelsToRemoveOnTypeChange  []string
 }
 
-func NewHandler(trackerAPI TrackerAPI) http.Handler {
-	return &handler{TrackerAPI: trackerAPI}
+func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI) http.Handler {
+	return &handler{
+		trackerAPI:   trackerAPI,
+		gitHubClient: gitHubClient,
+
+		labelsToRemoveOnStateChange: uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryState),
+		labelsToRemoveOnTypeChange:  uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryType),
+	}
 }
 
 // This endpoint implements Tracker's "Activity Web Hook" specification.
@@ -79,25 +72,62 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 			continue
 		}
 
-		// TODO only watch specific story change types that we care about
-
 		log.Printf("Saw story change: kind %s, story %d, story_type %s", change.ChangeType, change.ID, change.StoryType)
 
-		githubIssueID, err := h.TrackerAPI.GetGithubIssueIDLinkedToStory(activityEvent.Project.ID, change.ID)
+		if change.ChangeType == "delete" {
+			// A story that is already deleted cannot be queried via the Tracker API,
+			// so we have no easy way of knowing if it was linked to a GihHub issue.
+			log.Printf("Story was deleted, so skipping: story %d", change.ID)
+			continue
+		}
+
+		githubIssueID, err := h.trackerAPI.GetGithubIssueIDLinkedToStory(activityEvent.Project.ID, change.ID)
 		if err != nil {
-			// TODO when a story is being deleted, trying to query it results in a 404... do we care??
 			log.Printf("Error calling Tracker API: %v", err)
-			http.Error(responseWriter, "can't get github issue id", http.StatusBadGateway)
-			return
+			http.Error(responseWriter, "can't get GitHub issue id from Tracker", http.StatusBadGateway)
+			continue
 		}
 
 		if githubIssueID == 0 {
-			// this Tracker story is not linked to a GitHub Issue, so skip it
+			// This Tracker story is not linked to a GitHub Issue, so skip it.
 			log.Printf("Story is not linked to GitHub issue: story %d", change.ID)
 			continue
 		}
 
 		log.Printf("Story is linked to GitHub issue: story %d, GitHub issuse %d", change.ID, githubIssueID)
-		// TODO call github and do something with the issue id when it is non-zero
+
+		issueDetails, err := h.gitHubClient.GetIssue(request.Context(), githubIssueID)
+		if err != nil {
+			log.Printf("Could not get issue #%d from github: %v", githubIssueID, err)
+			http.Error(responseWriter, "can't get GitHub issue details from GitHub", http.StatusBadGateway)
+			continue
+		}
+
+		issueLabels := issueDetails.Labels
+		log.Printf("issue #%d had labels before update: %v", githubIssueID, issueLabels)
+
+		// If the current state of the story has changed, then update the labels of the linked issue.
+		newStoryState := change.NewValues.CurrentState
+		if newStoryState != "" {
+			issueLabels = removeElements(issueLabels, h.labelsToRemoveOnStateChange)
+			labelsForNewState := issueLabelsToApplyPerStoryState[newStoryState]
+			issueLabels = append(issueLabels, labelsForNewState...)
+		}
+
+		// If the story type has changed, then update the labels of the linked issue.
+		newStoryType := change.NewValues.StoryType
+		if newStoryType != "" {
+			issueLabels = removeElements(issueLabels, h.labelsToRemoveOnTypeChange)
+			labelsForNewStoryType := issueLabelsToApplyPerStoryType[newStoryType]
+			issueLabels = append(issueLabels, labelsForNewStoryType...)
+		}
+
+		// Push the updates back to GitHub.
+		err = h.gitHubClient.UpdateIssue(request.Context(), githubIssueID, &github.IssueRequest{Labels: &issueLabels})
+		if err != nil {
+			log.Printf("Error calling GitHub API: %v", err)
+			http.Error(responseWriter, "can't update GitHub issue via GitHub API", http.StatusBadGateway)
+			continue
+		}
 	}
 }

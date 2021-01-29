@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"issues2stories/internal/trackeractivity"
-	"issues2stories/internal/trackerapi"
-	"issues2stories/internal/trackerimport"
 	"log"
 	"net/http"
 	"os"
+
+	"issues2stories/internal/githubapi"
+	"issues2stories/internal/trackeractivity"
+	"issues2stories/internal/trackerapi"
+	"issues2stories/internal/trackerimport"
 )
 
 // Respond to heath checks at the root path. GKE Ingress default health check is GET "/".
@@ -45,8 +47,11 @@ func main() {
 		log.Fatal("TRACKER_API_TOKEN environment variable not found or empty")
 	}
 
+	trackerClient := trackerapi.New(trackerAPIToken, &http.Client{})
+	gitHubClient := githubapi.New()
+
 	mux := http.NewServeMux()
-	mux.Handle("/tracker_activity", trackeractivity.NewHandler(trackerapi.New(trackerAPIToken, &http.Client{})))
+	mux.Handle("/tracker_activity", trackeractivity.NewHandler(trackerClient, gitHubClient))
 	mux.Handle("/tracker_import", http.HandlerFunc(trackerimport.HandleTrackerImport))
 	mux.Handle("/", http.HandlerFunc(defaultHandler))
 
