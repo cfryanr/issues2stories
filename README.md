@@ -72,7 +72,10 @@ At this time, the app has the following limitations, which might be addressed by
       or who do not have write access to the repository from making these edits. Think twice about using this app
       if that is a concern for you.
 - The app does not re-read configuration dynamically. When you change configuration you can
-  restart the application's pod(s) using `rollout restart deployment/issues2stories`.
+  restart the application's pod(s) using:
+  ```bash
+  kubectl rollout restart deployment/issues2stories
+  ```
 - Each running instance of issues2stories can only be configured to link a
   single GitHub repository to a single Tracker project. If you would like to
   use issues2stories for multiple Tracker projects, you would currently
@@ -82,8 +85,8 @@ At this time, the app has the following limitations, which might be addressed by
   See the comments in [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go)
   for more information.
 - The GitHub issue labels that the app manages must be created manually in GitHub before using the app.
-  See [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) for a list of
-  label names that are assumed to exist on your GitHub repository.
+  See either the table above or [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go)
+  for a list of label names that are assumed to exist on your GitHub repository.
 - Aside from Fibonacci, linear, and powers of 2 estimate point scales, Tracker also supports "custom" scales.
   Custom scales are not supported by issues2stories unless the compile-time values for the point scale keys in
   [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) are adjusted to match your
