@@ -1,116 +1,51 @@
 package trackerimport
 
 import (
-	"context"
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"time"
+
+	"issues2stories/internal/githubapi"
+	"issues2stories/internal/importtypes"
 )
 
-type IssueList struct {
-	XMLName     xml.Name `xml:"external_stories"`
-	XMLTypeAttr string   `xml:"type,attr"`
-	Issues      []Issue
+type handler struct {
+	gitHubClient githubapi.GitHubAPI
 }
 
-type User struct {
-	Login string
-}
-
-type PullRequest struct {
-	URL string
-}
-
-type Label struct {
-	Name string
-}
-
-type Issue struct {
-	XMLName     xml.Name     `xml:"external_story"`
-	HtmlUrl     string       `json:"html_url" xml:",comment"`
-	PullRequest *PullRequest `json:"pull_request" xml:"-"`
-	Number      int          `xml:"external_id"`
-	Title       string       `xml:"name"`
-	Body        string       `xml:"description"`
-	User        User         `xml:"-"`
-	RequestedBy string       `xml:"requested_by"`
-	StoryType   string       `xml:"story_type"`
-	Labels      []Label      `xml:"-"`
-	CreatedAt   time.Time    `json:"created_at,string" xml:"created_at"`
+func NewHandler(gitHubClient githubapi.GitHubAPI) http.Handler {
+	return &handler{gitHubClient: gitHubClient}
 }
 
 // This endpoint implements Tracker's "Import API URL" specification.
 // See https://www.pivotaltracker.com/help/articles/other_integration
-func HandleTrackerImport(responseWriter http.ResponseWriter, request *http.Request) {
+//
+// Note this interesting limitation from the Tracker docs: "There isn’t a numeric limit,
+// but the integration will timeout if it takes more than 60 seconds to retrieve all
+// results, due to number of items, Internet speed, or the size of the items."
+// This code tries to be efficient, but this may theoretically impact GitHub repositories
+// which have a very, very large number of open issues. GitHub paginates API results, so
+// we need to make an API call to GitHub per 100 issues, adding latency.
+func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
-		msg := "Method is not supported"
-		log.Printf("%v", msg)
+		msg := fmt.Sprintf("Request method is not supported: %s", request.Method)
+		log.Print(msg)
 		http.Error(responseWriter, msg, http.StatusMethodNotAllowed)
 		return
 	}
 
-	log.Printf("tracker_import starting")
-
-	httpClient := &http.Client{}
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	getIssuesRequest, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf(
-			// TODO support pagination so we can get more than 100 open issues. See https://docs.github.com/en/rest/reference/issues#list-issues
-			"https://api.github.com/repos/%s/%s/issues?state=open&per_page=100",
-			os.Getenv("GITHUB_ORG"),
-			os.Getenv("GITHUB_REPO"),
-		),
-		nil,
-	)
+	issues, err := h.gitHubClient.ListAllOpenIssuesForRepoInImportFormat(request.Context())
 	if err != nil {
-		log.Printf("%v", err)
-		http.Error(responseWriter, "Failed to create request with context.", http.StatusInternalServerError)
+		log.Printf("tracker_import: error getting issues from GitHub API: %v", err)
+		http.Error(responseWriter, "failed to get issues from GitHub API", http.StatusBadGateway)
 		return
 	}
 
-	gitHubResp, err := httpClient.Do(getIssuesRequest)
-	if err != nil {
-		log.Printf("%v", err)
-		http.Error(responseWriter, "Failed to get Issues from GitHub API.", http.StatusInternalServerError)
-		return
-	}
-	defer gitHubResp.Body.Close()
-
-	if gitHubResp.StatusCode != http.StatusOK {
-		msg := fmt.Sprintf("GitHub API returned non-OK status: %s", gitHubResp.Status)
-		log.Printf("%v", msg)
-		http.Error(responseWriter, msg, http.StatusInternalServerError)
-		return
-	}
-
-	bodyBytes, err := ioutil.ReadAll(gitHubResp.Body)
-	if err != nil {
-		log.Printf("%v", err)
-		http.Error(responseWriter, "Failed to read GitHub response body", http.StatusInternalServerError)
-		return
-	}
-
-	var issues []Issue
-	err = json.Unmarshal(bodyBytes, &issues)
-	if err != nil {
-		log.Printf("%v", err)
-		http.Error(responseWriter, "Failed to parse Issues response from GitHub API.", http.StatusInternalServerError)
-		return
-	}
-
-	issuesWithPRsRemoved := make([]Issue, 0)
+	issuesWithPRsRemoved := make([]importtypes.Issue, 0)
 	for _, issue := range issues {
 		if issue.PullRequest == nil {
-			log.Printf("tracker_import saw issue: #%d: %s", issue.Number, issue.Title)
+			log.Printf("tracker_import: saw issue #%d: %s", issue.Number, issue.Title)
 			issue.RequestedBy = issue.User.Login // promote this field to top-level for xml output
 			if issue.HasLabel("bug") {
 				issue.StoryType = "bug"
@@ -121,26 +56,16 @@ func HandleTrackerImport(responseWriter http.ResponseWriter, request *http.Reque
 		}
 	}
 
-	xmlIssues := IssueList{Issues: issuesWithPRsRemoved}
+	xmlIssues := importtypes.IssueList{Issues: issuesWithPRsRemoved}
 	xmlIssues.XMLTypeAttr = "array" // Tracker docs say that this element should be annotated with type="array"
 
 	out, err := xml.MarshalIndent(xmlIssues, " ", "  ")
 	if err != nil {
-		msg := "Failed to serialize issues to XML"
-		log.Printf("%v", msg)
-		http.Error(responseWriter, msg, http.StatusInternalServerError)
+		log.Printf("tracker_import: error serializing issues to XML: %v", err)
+		http.Error(responseWriter, "error serializing issues to XML", http.StatusInternalServerError)
 		return
 	}
 
 	responseWriter.Write([]byte(xml.Header))
 	responseWriter.Write(out)
-}
-
-func (i *Issue) HasLabel(labelName string) bool {
-	for _, label := range i.Labels {
-		if label.Name == labelName {
-			return true
-		}
-	}
-	return false
 }
