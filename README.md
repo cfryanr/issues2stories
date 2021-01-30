@@ -88,9 +88,6 @@ At this time, the app has the following limitations, which might be addressed by
   Custom scales are not supported by issues2stories unless the compile-time values for the point scale keys in
   [internal/trackeractivity/constants.go](internal/trackeractivity/constants.go) are adjusted to match your
   custom scale.
-- The issues2stories Tracker story import integration will not work for the open GitHub issues beyond the first
-  100 issues. This is because the issues2stories backend code is not using pagination yet when making the 
-  GitHub API request to list open stories. This should be easy to fix.
 
 ## Installing
 

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
+	"issues2stories/internal/importtypes"
 )
 
 type readerWhichAlwaysErrors int
@@ -86,6 +87,10 @@ func (f *fakeGitHubAPI) UpdateIssue(_ context.Context, issueNumber int, updates 
 	return nil
 }
 
+func (f *fakeGitHubAPI) ListAllOpenIssuesForRepoInImportFormat(_ context.Context) ([]importtypes.Issue, error) {
+	panic("not used by the test subject")
+}
+
 type fakeTrackerAPIReturnValues struct {
 	issueIDs []int
 	errors   []error
@@ -120,7 +125,6 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 		configuration *config.Config
 
 		method      string
-		path        string
 		contentType string
 		body        string
 		bodyFixture string
