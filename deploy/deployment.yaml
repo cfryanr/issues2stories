@@ -5,12 +5,12 @@ kind: Namespace
 metadata:
   name: issues2stories
   labels:
-    name: issues2stories
+    app: issues2stories
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: api-tokens
+  name: issues2stories-api-tokens
   namespace: issues2stories
   labels:
     app: issues2stories
@@ -19,11 +19,25 @@ stringData:
   tracker: #@ data.values.tracker_token
   github: #@ data.values.github_token
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: issues2stories-basic-auth
+  namespace: issues2stories
+  labels:
+    app: issues2stories
+type: kubernetes.io/basic-auth
+stringData:
+  username: #@ data.values.basic_auth_username
+  password: #@ data.values.basic_auth_password
+---
 kind: ConfigMap
 apiVersion: v1
 metadata:
   name: issues2stories-configmap
   namespace: issues2stories
+  labels:
+    app: issues2stories
 data:
   #@yaml/text-templated-strings
   config.yaml: |
@@ -37,7 +51,7 @@ metadata:
   labels:
     app: issues2stories
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: issues2stories
@@ -61,13 +75,23 @@ spec:
             - name: TRACKER_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: api-tokens
+                  name: issues2stories-api-tokens
                   key: tracker
             - name: GITHUB_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: api-tokens
+                  name: issues2stories-api-tokens
                   key: github
+            - name: BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: issues2stories-basic-auth
+                  key: username
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: issues2stories-basic-auth
+                  key: password
       volumes:
         - name: config-volume
           configMap:
@@ -95,6 +119,8 @@ kind: ManagedCertificate
 metadata:
   name: issues2stories
   namespace: issues2stories
+  labels:
+    app: issues2stories
 spec:
   domains:
     - #@ data.values.domain_name
@@ -104,6 +130,8 @@ kind: Ingress
 metadata:
   name: issues2stories
   namespace: issues2stories
+  labels:
+    app: issues2stories
   annotations:
     kubernetes.io/ingress.class: gce #! External load balancer
     kubernetes.io/ingress.allow-http: "false" #! Turn off http. Must be the string "false" (not the boolean).

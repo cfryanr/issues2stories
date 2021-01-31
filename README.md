@@ -64,13 +64,6 @@ the backlog or icebox, and the synchronization described above will resume.
 
 At this time, the app has the following limitations, which might be addressed by future enhancements:
 
-- There is no authentication on the provided REST endpoints.
-    - There is a read-only endpoint that could be exploited to read open issues from your GitHub repository. This
-      is not a problem for public repositories, but think twice before using this for a private repository.
-    - There is an endpoint which could be exploited to perform the edits described in the table above to your
-      GitHub issues. Normally, even on a public repository, GitHub would prevent users who did not create the issue
-      or who do not have write access to the repository from making these edits. Think twice about using this app
-      if that is a concern for you.
 - The app does not re-read configuration dynamically. When you change configuration you can
   restart the application's pod(s) using:
   ```bash
@@ -137,7 +130,8 @@ to find the user IDs of your project members.
    are not configured will not be set as assignees on GitHub issues when they become owners of Tracker stories.
 1. Craft a YAML map of Tracker user IDs to GitHub usernames for the people on your team.
    e.g. `{3344177: cfryanr, 1234567: some-other-github-username}`
-1. Provide that map as the configuration value for ytt when deploying. See [deploy/values.yaml](deploy/values.yaml)
+1. Provide that map as the `tracker_id_to_github_username_mapping` configuration value for
+   ytt when deploying. See [deploy/values.yaml](deploy/values.yaml)
    and also see deployment example below.
 
 ### Example: Installing on [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine)
@@ -164,7 +158,7 @@ scope of this document.
 1. [Reserve a global static external IP address](https://console.cloud.google.com/networking/addresses/list).
    Create it using the settings `Premium` and `Global`.
    The `name` that you choose for this reservation will be used when rendering the ytt
-   templates below.
+   templates below as the `ingress_global_static_ip_name` ytt value.
 
 1. [Create a DNS A record](https://console.cloud.google.com/net-services/dns/zones) in a DNS zone
    for the reserved address. For example, if your DNS zone is named `your-zone.com`, then
@@ -175,7 +169,13 @@ scope of this document.
    nslookup issues2stories.your-zone.com
    ```
 
-   This domain name will be used when rendering the ytt templates below.
+   This domain name will be used when rendering the ytt templates below as the `domain_name` ytt value.
+
+1. Make up a username and password which clients of this app will need to use on all requests.
+   It may be easier to avoid characters that require URL escaping by using letters, numbers, and dashes.
+   It is recommended that this password be at least 40 random characters to make it hard to guess.
+   These values will be used when rendering the ytt templates below as the `basic_auth_username`
+   and `basic_auth_password` ytt values.
 
 1. Edit the values.yaml file or use ytt command-line options to provide values
    for all parameters in [deploy/values.yaml](deploy/values.yaml).
@@ -187,11 +187,14 @@ scope of this document.
     ```
 
 1. Make sure your current context for `kubectl` is your GKE Kubernetes cluster.
-   Then install with:
+   If you like to use [kapp](https://carvel.dev/kapp/) then deploy with:
 
     ```bash
     kapp deploy --app issues2stories --diff-changes --file /tmp/deployment.yaml
     ```
+
+   Otherwise, use `kubectl` or your favorite Kubernetes deployment tool.
+   `/tmp/deployment.yaml` will be in the standard Kubernetes YAML format.
 
 1. Look up the IP address of the load balancer with `kubectl get ingress -n issues2stories`.
    It should be the same IP address that you reserved in the previous step. Wait until
@@ -206,30 +209,43 @@ scope of this document.
 
    The `Status.CertificateStatus` field will be `Active` when it is finished.
 
-1. Confirm that everything is working:
+1. Confirm that everything is working. The following `curl` command should return a bunch of XML
+   which describes all open issues in your GitHub repository (not including pull requests).
 
    ```bash
-   curl https://issues2stories.your-zone.com/tracker_import
+   curl -fs -u your-username:your-password https://issues2stories.your-zone.com/tracker_import
    ```
 
+   You'll need to replace the `issues2stories.your-zone.com`, `your-username`, and `your-password`
+   strings in the command above with the actual values that you chose in the previous steps.
+   
 1. Add the integration to the Tracker project.
    In the project, navigate to "Integrations -> Add an Integration -> Other".
    Use the following settings:
 
    - Project: Choose the project
    - Name: `issues2stories`
-   - Basic Auth Username: Leave blank
-   - Basic Auth Password: Leave blank
+   - Basic Auth Username: Enter the basic auth username that you configured above
+   - Basic Auth Password: Enter the basic auth password that you configured above
    - Base URL: `https://github.com/your-org/your-repo/issues/`
    - Import API URL: `https://issues2stories.your-zone.com/tracker_import`
    - Enabled: Checked
+
+   You'll need to replace the `issues2stories.your-zone.com`, `your-org`, and `your-repo`
+   strings in the examples above with the actual values that you chose in the previous steps.
 
 1. Add the webhook to the Tracker project.
    In the project, navigate to "More -> Webhooks".
    Use the following settings to add a webhook:
 
-   - URL: https://issues2stories.your-zone.com/tracker_activity
+   - URL: `https://issues2stories.your-zone.com/tracker_activity?username=your-username&password=your-password`
+
+   You'll need to replace the `issues2stories.your-zone.com` in the URL above with the actual
+   value that you chose in the previous steps. Also replace `your-username` and `your-password`
+   in the URL above with basic auth username and password that you chose in the previous steps.
 
 1. In your Tracker project, click on "issues2stories" (with the jigsaw puzzle icon)
    button in the left-hand side navigation. The panel will appear and should show
-   a list of all open issues from your GitHub repository.
+   a list of all open issues from your GitHub repository. Drag one of these issues
+   to the backlog or icebox and you should see the issue's labels automatically update
+   on GitHub after a few seconds.

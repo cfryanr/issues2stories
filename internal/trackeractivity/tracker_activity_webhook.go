@@ -18,17 +18,19 @@ type handler struct {
 	gitHubClient githubapi.GitHubAPI
 
 	configuration *config.Config
+	credentials   *config.BasicAuthCredentials
 
 	labelsToRemoveOnStateChange    []string
 	labelsToRemoveOnTypeChange     []string
 	labelsToRemoveOnEstimateChange []string
 }
 
-func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI, configuration *config.Config) http.Handler {
+func NewHandler(trackerAPI trackerapi.TrackerAPI, gitHubClient githubapi.GitHubAPI, configuration *config.Config, credentials *config.BasicAuthCredentials) http.Handler {
 	return &handler{
 		trackerAPI:    trackerAPI,
 		gitHubClient:  gitHubClient,
 		configuration: configuration,
+		credentials:   credentials,
 
 		labelsToRemoveOnStateChange:    uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryState),
 		labelsToRemoveOnTypeChange:     uniqueValuesFromMapOfSlices(issueLabelsToApplyPerStoryType),
@@ -43,6 +45,12 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 		msg := fmt.Sprintf("Request method is not supported: %s", request.Method)
 		log.Print(msg)
 		http.Error(responseWriter, msg, http.StatusMethodNotAllowed)
+		return
+	}
+
+	if !h.credentials.Matches(request) {
+		log.Print("Rejecting request due to bad credentials.")
+		http.Error(responseWriter, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 

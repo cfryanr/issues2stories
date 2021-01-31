@@ -129,6 +129,7 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 		body        string
 		bodyFixture string
 		bodyReader  io.Reader
+		requestAuth *config.BasicAuthCredentials
 
 		wantStatus      int
 		wantBody        string
@@ -148,6 +149,27 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			wantStatus:      http.StatusMethodNotAllowed,
 			wantContentType: "text/plain; charset=utf-8",
 			wantBody:        "Request method is not supported: GET\n",
+		},
+		{
+			name:            "wrong username is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "wrong", Password: "correct-password"},
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
+		},
+		{
+			name:            "wrong password is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "correct-username", Password: "wrong"},
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
+		},
+		{
+			name:            "missing auth on request is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "", Password: ""},
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
 		},
 		{
 			name:            "wrong content type is an error",
@@ -848,7 +870,8 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 				test.configuration = &config.Config{}
 			}
 
-			subject := NewHandler(&trackerAPI, &gitHubAPI, test.configuration)
+			subject := NewHandler(&trackerAPI, &gitHubAPI, test.configuration,
+				&config.BasicAuthCredentials{Username: "correct-username", Password: "correct-password"})
 
 			var requestBodyReader io.Reader
 			switch {
@@ -860,7 +883,16 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 				requestBodyReader = strings.NewReader(test.body)
 			}
 
-			req := httptest.NewRequest(test.method, "/some/path", requestBodyReader)
+			path := "/some/path?username=correct-username&password=correct-password"
+			if test.requestAuth != nil {
+				if test.requestAuth.Username == "" && test.requestAuth.Password == "" {
+					path = "/some/path"
+				} else {
+					path = fmt.Sprintf("/some/path?username=%s&password=%s", test.requestAuth.Username, test.requestAuth.Password)
+				}
+			}
+
+			req := httptest.NewRequest(test.method, path, requestBodyReader)
 			rsp := httptest.NewRecorder()
 			req.Header.Set("Content-Type", test.contentType)
 
