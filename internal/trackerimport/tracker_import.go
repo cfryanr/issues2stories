@@ -6,16 +6,18 @@ import (
 	"log"
 	"net/http"
 
+	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
 	"issues2stories/internal/importtypes"
 )
 
 type handler struct {
 	gitHubClient githubapi.GitHubAPI
+	credentials  *config.BasicAuthCredentials
 }
 
-func NewHandler(gitHubClient githubapi.GitHubAPI) http.Handler {
-	return &handler{gitHubClient: gitHubClient}
+func NewHandler(gitHubClient githubapi.GitHubAPI, credentials *config.BasicAuthCredentials) http.Handler {
+	return &handler{gitHubClient: gitHubClient, credentials: credentials}
 }
 
 // This endpoint implements Tracker's "Import API URL" specification.
@@ -32,6 +34,12 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 		msg := fmt.Sprintf("Request method is not supported: %s", request.Method)
 		log.Print(msg)
 		http.Error(responseWriter, msg, http.StatusMethodNotAllowed)
+		return
+	}
+
+	if !h.credentials.Matches(request) {
+		log.Print("Rejecting request due to bad credentials.")
+		http.Error(responseWriter, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 

@@ -33,14 +33,21 @@ func main() {
 	gitHubRepo := requireEnv("GITHUB_REPO")
 	gitAPIToken := requireEnv("GITHUB_API_TOKEN")
 	trackerAPIToken := requireEnv("TRACKER_API_TOKEN")
+	basicAuthCredentials := &config.BasicAuthCredentials{
+		Username: requireEnv("BASIC_AUTH_USERNAME"),
+		Password: requireEnv("BASIC_AUTH_PASSWORD"),
+	}
 
 	trackerClient := trackerapi.New(trackerAPIToken, &http.Client{})
 	gitHubClient := githubapi.New(gitAPIToken, gitHubOrg, gitHubRepo)
 
 	mux := http.NewServeMux()
-	mux.Handle("/tracker_activity", trackeractivity.NewHandler(trackerClient, gitHubClient, &configuration))
-	mux.Handle("/tracker_import", trackerimport.NewHandler(gitHubClient))
-	mux.Handle("/", http.HandlerFunc(defaultHandler))
+	mux.Handle("/tracker_activity",
+		trackeractivity.NewHandler(trackerClient, gitHubClient, &configuration, basicAuthCredentials))
+	mux.Handle("/tracker_import",
+		trackerimport.NewHandler(gitHubClient, basicAuthCredentials))
+	mux.Handle("/",
+		http.HandlerFunc(defaultHandler))
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)

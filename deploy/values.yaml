@@ -1,36 +1,58 @@
 #@data/values
 ---
 
+#! Required. The container image to deploy to the app's pod(s).
 #! e.g. "gcr.io/your-gcp-project/issues2stories:latest"
 container_image:
 
+#! Required. The name of the owner (user or organization) of your GitHub repository.
 #! e.g. "your-org" from https://github.com/your-org/your-repo
 github_org:
+
+#! Required. The name of your GitHub repository.
 #! e.g. "your-repo" from https://github.com/your-org/your-repo
 github_repo:
 
+#! Required. The domain name of this app. Used to configure a GKE ManagedCertificate.
 #! e.g. "issues2stories.your-zone.com"
 domain_name:
 
+#! Required. The name of a GCP static IP reservation. Used to configure a GKE Ingress.
 #! e.g. "issues2stories-external-load-balancer-ingress-ip"
 ingress_global_static_ip_name:
 
-#! Tracker API token. The user account who owns this token must
-#! have at least read-only access to your Tracker project.
+#! Required. Tracker API token. The user account who owns this token
+#! must have at least read-only access to your Tracker project.
 #! The webhook will use this token whenever it hears about
 #! a changed Tracker user story to call the Tracker API to get
-#! more details about the story.
+#! more details about the story. It will not be used to perform any
+#! write operations to the Tracker API.
 #! e.g. "1c11aef11aef1f11111111111111111111111111"
 tracker_token:
 
-#! GitHub personal access token. The user account who owns this token must
-#! have write access to your GitHub project, and the token must be created
+#! Required. GitHub personal access token. The user account who owns this token
+#! must have write access to your GitHub project, and the token must be created
 #! with at least "full repo" access permission. This token will be used to
-#! make API calls to read and edit GitHub issues in your GitHub project.
+#! make API calls only to read and edit GitHub issues in your GitHub project.
 #! e.g. "1c11aef11aef1f11111111111111111111111111"
 github_token:
 
-#! See issues2stories project README for how to configure this.
+#! Required. Configure a username which clients of this app must use to
+#! access its endpoints. The /tracker_import endpoint should be called with
+#! a basic auth header (see https://tools.ietf.org/html/rfc7617) and
+#! the /tracker_activity endpoint should be called with "username"
+#! and "password" query parameters.
+#! e.g. "my-tracker-integration-username"
+basic_auth_username:
+
+#! Required. Configure a password which clients of this app must use to
+#! access its endpoints. See comment above for how clients should transmit
+#! this password. It is recommended that this password be at least
+#! 40 characters to make it hard to guess.
+#! e.g. "jklhasdf78789kjfsdf897khsjmbntfdf237sbc9"
+basic_auth_password:
+
+#! Optional. See issues2stories project README for how to configure this.
 #! The value should be formatted a string which can be evaluated as a YAML map.
 #! Or the value can be omitted which will disable the feature which updates
 #! the GitHub issue's assignees field when the Tracker story's owner(s) changes.

@@ -2,6 +2,7 @@ package trackerimport
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/google/go-github/v33/github"
 	"github.com/stretchr/testify/require"
+	"issues2stories/internal/config"
 	"issues2stories/internal/githubapi"
 	"issues2stories/internal/importtypes"
 )
@@ -73,7 +75,8 @@ func TestHandleTrackerImport(t *testing.T) {
 	tests := []struct {
 		name string
 
-		method string
+		method      string
+		requestAuth *config.BasicAuthCredentials
 
 		wantStatus      int
 		wantBody        string
@@ -84,13 +87,35 @@ func TestHandleTrackerImport(t *testing.T) {
 	}{
 		{
 			name:            "wrong method is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "correct-username", Password: "correct-password"},
 			method:          http.MethodPost,
 			wantStatus:      http.StatusMethodNotAllowed,
 			wantContentType: "text/plain; charset=utf-8",
 			wantBody:        "Request method is not supported: POST\n",
 		},
 		{
-			name: "asking GitHub for the list of issues fails",
+			name:            "wrong username is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "wrong", Password: "correct-password"},
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
+		},
+		{
+			name:            "wrong password is an error",
+			requestAuth:     &config.BasicAuthCredentials{Username: "correct-username", Password: "wrong"},
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
+		},
+		{
+			name:            "missing auth on request is an error",
+			wantStatus:      http.StatusUnauthorized,
+			wantContentType: "text/plain; charset=utf-8",
+			wantBody:        "Unauthorized\n",
+		},
+		{
+			name:        "asking GitHub for the list of issues fails",
+			requestAuth: &config.BasicAuthCredentials{Username: "correct-username", Password: "correct-password"},
 			gitHubListIssuesReturns: &fakeGitHubListIssuesReturnValues{
 				errors: []error{fmt.Errorf("fake error from GitHub")},
 			},
@@ -102,7 +127,8 @@ func TestHandleTrackerImport(t *testing.T) {
 			wantBody:        "failed to get issues from GitHub API\n",
 		},
 		{
-			name: "happy path",
+			name:        "happy path",
+			requestAuth: &config.BasicAuthCredentials{Username: "correct-username", Password: "correct-password"},
 			gitHubListIssuesReturns: &fakeGitHubListIssuesReturnValues{
 				issueLists: [][]importtypes.Issue{
 					// This test fixture includes an issue with several labels, an issue which is labeled "bug",
@@ -136,9 +162,18 @@ func TestHandleTrackerImport(t *testing.T) {
 				test.method = http.MethodGet
 			}
 
-			subject := NewHandler(&gitHubAPI)
+			configuredAuth := &config.BasicAuthCredentials{Username: "correct-username", Password: "correct-password"}
+
+			subject := NewHandler(&gitHubAPI, configuredAuth)
 
 			req := httptest.NewRequest(test.method, "/some/path", nil)
+			if test.requestAuth != nil {
+				basicAuthHeaderValue := "Basic " + base64.StdEncoding.EncodeToString(
+					[]byte((test.requestAuth.Username + ":" + test.requestAuth.Password)),
+				)
+				req.Header.Add("Authorization", basicAuthHeaderValue)
+			}
+
 			rsp := httptest.NewRecorder()
 
 			subject.ServeHTTP(rsp, req)
