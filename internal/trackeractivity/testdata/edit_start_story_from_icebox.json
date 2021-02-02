@@ -1,0 +1,58 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5913",
+  "project_version": 5913,
+  "message": "Ryan Richard started this feature",
+  "highlight": "started",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176755643,
+      "original_values": {
+        "current_state": "unscheduled",
+        "owned_by_id": null,
+        "owner_ids": [
+        ],
+        "updated_at": 1612225674000,
+        "before_id": 176518988,
+        "after_id": 176518987
+      },
+      "new_values": {
+        "current_state": "started",
+        "owned_by_id": 3344177,
+        "owner_ids": [
+          3344177
+        ],
+        "updated_at": 1612225677000,
+        "before_id": 176749103,
+        "after_id": 176749344
+      },
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176755643,
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176755643"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1612225677000
+}

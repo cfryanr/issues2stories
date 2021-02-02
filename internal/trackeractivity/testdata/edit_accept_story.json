@@ -1,0 +1,53 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_5916",
+  "project_version": 5916,
+  "message": "Ryan Richard accepted this feature",
+  "highlight": "accepted",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176755643,
+      "original_values": {
+        "current_state": "delivered",
+        "accepted_at": null,
+        "updated_at": 1612225679000,
+        "before_id": 176749103,
+        "after_id": 176749344
+      },
+      "new_values": {
+        "current_state": "accepted",
+        "accepted_at": 1612225682000,
+        "updated_at": 1612225683000,
+        "before_id": 176525638,
+        "after_id": 176643430
+      },
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176755643,
+      "name": "Fake issue for testing, please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176755643"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1612225683000
+}

@@ -15,13 +15,13 @@ package trackeractivity
 // by any value in the map, and then add the labels at that specific
 // key's value.
 var issueLabelsToApplyPerStoryState = map[string][]string{
-	"unscheduled": {"priority/undecided"},
-	"unstarted":   {"priority/backlog"},
+	"unscheduled": {"priority/undecided"}, // "unscheduled" stories are in the icebox
+	"unstarted":   {"priority/backlog"},   // "unstarted" stories in the backlog
 	"started":     {"priority/backlog", "state/started"},
 	"finished":    {"priority/backlog", "state/finished"},
 	"delivered":   {"priority/backlog", "state/delivered"},
 	"rejected":    {"priority/backlog", "state/rejected"},
-	"accepted":    {"state/accepted"},
+	"accepted":    {"state/accepted"}, // "accepted" stories are done, so they're not in the backlog anymore
 
 	// The feature of Tracker that causes a story to be "planned" is not commonly used.
 	// It should be similar to the "unstarted" state for our purposes here.

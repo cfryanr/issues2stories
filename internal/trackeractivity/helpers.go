@@ -50,3 +50,9 @@ func equalIgnoringOrder(a1, a2 []string) bool {
 	}
 	return true
 }
+
+// Useful when you wish you could get the address of a string literal or constant.
+// Works because it makes a copy of the value and returns a pointer to the copy.
+func addressOf(s string) *string {
+	return &s
+}

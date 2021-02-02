@@ -38,7 +38,7 @@ The following changes to the user story will be reflected back to the correspond
 | Finished                                              | Labeled `state/finished`           |
 | Delivered                                             | Labeled `state/delivered`          |
 | Rejected                                              | Labeled `state/rejected`           |
-| Accepted                                              | Labeled `state/accepted`           |
+| Accepted                                              | Closed and labeled `state/accepted` |
 | Made a Feature                                        | Labeled `enhancement`              |
 | Made a Bug                                            | Labeled `bug`                      |
 | Made a Chore                                          | Labeled `chore`                    |

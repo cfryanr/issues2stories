@@ -832,6 +832,99 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 		},
+		{
+			name:        "starting a story from the icebox",
+			bodyFixture: "edit_start_story_from_icebox",
+			configuration: &config.Config{UserIDMapping: map[int64]string{
+				3344177: "github-user1",
+			}},
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/undecided", "estimate/XXL"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176755643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels:    &[]string{"initial-unrelated-label", "enhancement", "estimate/XXL", "priority/backlog", "state/started"},
+						Assignees: &[]string{"github-user1"},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "accepting a story labels the issue as accepted, removes the issue's `priority/backlog` label, and also closes the issue",
+			bodyFixture: "edit_accept_story",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/backlog", "estimate/XXL", "state/delivered"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176755643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels: &[]string{"initial-unrelated-label", "enhancement", "estimate/XXL", "state/accepted"},
+						State:  addressOf("closed"),
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "editing an accepted story back to any other state relabels the issue and also reopens the issue",
+			bodyFixture: "edit_unaccept_story",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "estimate/XXL", "state/accepted"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176755643},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Labels: &[]string{"initial-unrelated-label", "enhancement", "estimate/XXL", "priority/backlog", "state/started"},
+						State:  addressOf("open"),
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

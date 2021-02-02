@@ -121,12 +121,23 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 		issueLabels := issueDetails.Labels
 		log.Printf("issue #%d had labels before update: %v", githubIssueID, issueLabels)
 
+		issueRequest := github.IssueRequest{}
+
 		// If the current state of the story has changed, then update the labels of the linked issue.
 		newStoryState := change.NewValues.CurrentState
 		if newStoryState != "" {
 			issueLabels = removeElements(issueLabels, h.labelsToRemoveOnStateChange)
 			labelsForNewState := issueLabelsToApplyPerStoryState[newStoryState]
 			issueLabels = append(issueLabels, labelsForNewState...)
+			if newStoryState == "accepted" {
+				// If the story was accepted then close the linked issue.
+				log.Printf("Closing issue #%d", githubIssueID)
+				issueRequest.State = addressOf("closed")
+			} else if change.OriginalValues.CurrentState == "accepted" {
+				// If the story was previously accepted but is now moving to another state then reopen the linked issue.
+				log.Printf("Reopening issue #%d", githubIssueID)
+				issueRequest.State = addressOf("open")
+			}
 		}
 
 		// If the story type has changed, then update the labels of the linked issue.
@@ -149,12 +160,12 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 			}
 		}
 
-		// All label processing is finished, so set the results on the request object.
-		issueRequest := github.IssueRequest{Labels: &issueLabels}
-		log.Printf("New labels for issue #%d: %v", githubIssueID, issueLabels)
-		if equalIgnoringOrder(issueDetails.Labels, issueLabels) {
+		// All label processing is finished, so set the results on the request object if there are any desired differences.
+		if !equalIgnoringOrder(issueDetails.Labels, issueLabels) {
+			log.Printf("New labels for issue #%d: %v", githubIssueID, issueLabels)
+			issueRequest.Labels = &issueLabels
+		} else {
 			log.Printf("No label updates needed for issue #%d", githubIssueID)
-			issueRequest.Labels = nil
 		}
 
 		// If the story's owners have changed, then consider overwriting the assignees of the linked issue.
@@ -189,7 +200,7 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 		}
 
 		// Push the updates back to GitHub, if there are any changes to be made.
-		if issueRequest.Assignees == nil && issueRequest.Labels == nil {
+		if (github.IssueRequest{}) == issueRequest {
 			log.Printf("No updates planned. Skipping GitHub API call for issue #%d", githubIssueID)
 			continue
 		}
