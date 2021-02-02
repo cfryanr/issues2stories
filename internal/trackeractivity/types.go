@@ -9,14 +9,15 @@ type TrackerEvent struct {
 }
 
 type Change struct {
-	Kind       string    `json:"kind"`
-	ID         int64     `json:"id"`
-	ChangeType string    `json:"change_type"`
-	StoryType  string    `json:"story_type"`
-	NewValues  NewValues `json:"new_values"`
+	Kind           string        `json:"kind"`
+	ID             int64         `json:"id"`
+	ChangeType     string        `json:"change_type"`
+	StoryType      string        `json:"story_type"`
+	OriginalValues ChangedValues `json:"original_values"`
+	NewValues      ChangedValues `json:"new_values"`
 }
 
-type NewValues struct {
+type ChangedValues struct {
 	StoryType    string            `json:"story_type"`
 	CurrentState string            `json:"current_state"`
 	Estimate     OptionalInt64     `json:"estimate"`

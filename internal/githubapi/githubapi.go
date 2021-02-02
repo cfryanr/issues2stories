@@ -43,6 +43,7 @@ func New(apiToken, org, repo string) GitHubAPI {
 
 // Thin wrapper around github.IssuesService's GetIssue() to only return what we need.
 func (c *gitHubClient) GetIssue(ctx context.Context, issueNumber int) (*Issue, error) {
+	// See https://docs.github.com/en/rest/reference/issues#get-an-issue
 	issue, _, err := c.client.Issues.Get(ctx, c.org, c.repo, issueNumber)
 	if err != nil {
 		return nil, err
@@ -56,14 +57,15 @@ func (c *gitHubClient) GetIssue(ctx context.Context, issueNumber int) (*Issue, e
 
 // Thin wrapper around github.IssuesService's UpdateIssue().
 func (c *gitHubClient) UpdateIssue(ctx context.Context, issueNumber int, updates *github.IssueRequest) error {
+	// See https://docs.github.com/en/rest/reference/issues#update-an-issue
 	_, _, err := c.client.Issues.Edit(ctx, c.org, c.repo, issueNumber, updates)
 	return err
 }
 
 // List all open issues in the repository.
 // Follow the GitHub API pagination until the end to read all results, and return a custom format tailored to our needs.
-// See https://docs.github.com/en/rest/reference/issues#list-repository-issues
 func (c *gitHubClient) ListAllOpenIssuesForRepoInImportFormat(ctx context.Context) ([]importtypes.Issue, error) {
+	// See https://docs.github.com/en/rest/reference/issues#list-repository-issues
 	opt := &github.IssueListByRepoOptions{
 		State:       "open",
 		Sort:        "created",
@@ -89,6 +91,7 @@ func (c *gitHubClient) ListAllOpenIssuesForRepoInImportFormat(ctx context.Contex
 // to make it more convenient for our needs and to avoid the runtime/space penalty of deserializing
 // the majority of the json response content.
 func (c *gitHubClient) getOnePageOfListAllIssuesForRepo(ctx context.Context, opts *github.IssueListByRepoOptions) ([]importtypes.Issue, *github.Response, error) {
+	// See https://docs.github.com/en/rest/reference/issues#list-repository-issues
 	u := fmt.Sprintf("repos/%v/%v/issues", c.org, c.repo)
 	u, err := addOptions(u, opts)
 	if err != nil {
