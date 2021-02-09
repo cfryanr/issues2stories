@@ -18,6 +18,8 @@ type Change struct {
 }
 
 type ChangedValues struct {
+	Title        string            `json:"name"`
+	Description  string            `json:"description"`
 	StoryType    string            `json:"story_type"`
 	CurrentState string            `json:"current_state"`
 	Estimate     OptionalInt64     `json:"estimate"`

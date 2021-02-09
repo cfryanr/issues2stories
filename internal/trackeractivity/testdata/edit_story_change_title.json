@@ -1,0 +1,47 @@
+{
+  "kind": "story_update_activity",
+  "guid": "2453999_6112",
+  "project_version": 6112,
+  "message": "Ryan Richard edited this feature",
+  "highlight": "edited",
+  "changes": [
+    {
+      "kind": "story",
+      "change_type": "update",
+      "id": 176858613,
+      "original_values": {
+        "name": "Fake issue for testing, please ignore",
+        "updated_at": 1612827283000
+      },
+      "new_values": {
+        "name": "New title for Fake issue for testing, please ignore",
+        "updated_at": 1612827348000
+      },
+      "name": "New title for Fake issue for testing, please ignore",
+      "story_type": "feature"
+    }
+  ],
+  "primary_resources": [
+    {
+      "kind": "story",
+      "id": 176858613,
+      "name": "New title for Fake issue for testing, please ignore",
+      "story_type": "feature",
+      "url": "https://www.pivotaltracker.com/story/show/176858613"
+    }
+  ],
+  "secondary_resources": [
+  ],
+  "project": {
+    "kind": "project",
+    "id": 2453999,
+    "name": "Example Project"
+  },
+  "performed_by": {
+    "kind": "person",
+    "id": 3344177,
+    "name": "Ryan Richard",
+    "initials": "RR"
+  },
+  "occurred_at": 1612827348000
+}

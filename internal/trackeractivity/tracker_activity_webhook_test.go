@@ -925,6 +925,64 @@ func TestHandleTrackerActivityWebhook(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 		},
+		{
+			name:        "editing the title of a story also edits the title of the issue",
+			bodyFixture: "edit_story_change_title",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176858613},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Title: addressOf("New title for Fake issue for testing, please ignore"),
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "editing the description of a story also edits the title of the issue",
+			bodyFixture: "edit_story_change_description",
+			trackerReturns: &fakeTrackerAPIReturnValues{
+				issueIDs: []int{42},
+			},
+			gitHubGetIssueReturns: &fakeGitHubGetIssueReturnValues{
+				issues: []*githubapi.Issue{{Labels: []string{"initial-unrelated-label", "enhancement", "priority/backlog"}}},
+			},
+			wantTrackerInvocations: &fakeTrackerAPIActivity{
+				invocations:   1,
+				projectIDArgs: []int64{2453999},
+				storyIDArgs:   []int64{176858613},
+			},
+			wantGitHubGetIssueInvocations: &fakeGitHubGetIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+			},
+			wantGitHubUpdateIssueInvocations: &fakeGitHubUpdateIssueActivity{
+				invocations:     1,
+				issueNumberArgs: []int{42},
+				updatesArgs: []*github.IssueRequest{
+					{
+						Body: addressOf("This is the UPDATED description.\n"),
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
