@@ -28,7 +28,7 @@ Additional changes to the GitHub issue are *not* reflected in the Tracker user s
 issues2stories also provides a
 [Pivotal Tracker webhook](https://www.pivotaltracker.com/help/articles/activity_webhook)
 to allow limited synchronizing of the edits made to Tracker stories back to the linked GitHub issue.
-The following changes to the user story will be reflected back to the corresponding GitHub issue:
+The following changes to the Tracker user story will be reflected back to the corresponding GitHub issue:
 
 | When the story is...                                  | Then the linked GitHub issue is... |
 | --------------------                                  | ---------------------------------- |
@@ -53,6 +53,8 @@ The following changes to the user story will be reflected back to the correspond
 | Un-estimated                                          | Updated the remove the above `estimate/*` labels |
 | Assigned to an owner(s)                               | Updated to change the Assignees    |
 | Unassigned                                            | Updated to clear the Assignees     |
+| Edited to update the title                            | Updated with the new title         |
+| Edited to update the description                      | Updated with the new description   |
 
 If the user story is deleted, and the integration panel is refreshed,
 then the issue will reappear in the integration panel. The Tracker story changes which

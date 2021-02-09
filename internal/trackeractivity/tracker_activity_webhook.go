@@ -123,6 +123,18 @@ func (h *handler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Re
 
 		issueRequest := github.IssueRequest{}
 
+		// If an existing story's title has changed, then update the title of the linked issue.
+		newStoryTitle := change.NewValues.Title
+		if newStoryTitle != "" && change.ChangeType != "create" {
+			issueRequest.Title = &newStoryTitle
+		}
+
+		// If an existing story's description has changed, then update the body of the linked issue.
+		newStoryDescription := change.NewValues.Description
+		if newStoryDescription != "" && change.ChangeType != "create" {
+			issueRequest.Body = &newStoryDescription
+		}
+
 		// If the current state of the story has changed, then update the labels of the linked issue.
 		newStoryState := change.NewValues.CurrentState
 		if newStoryState != "" {
