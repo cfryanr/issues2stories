@@ -125,7 +125,7 @@ spec:
   domains:
     - #@ data.values.domain_name
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: issues2stories
@@ -139,6 +139,8 @@ metadata:
     #! Static IP must defined in advance here: https://console.cloud.google.com/networking/addresses/list
     kubernetes.io/ingress.global-static-ip-name: #@ data.values.ingress_global_static_ip_name
 spec:
-  backend:
-    serviceName: issues2stories
-    servicePort: 60000
+  defaultBackend:
+    service:
+      name: issues2stories
+      port:
+        number: 60000
